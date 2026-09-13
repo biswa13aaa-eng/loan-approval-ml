@@ -1,6 +1,6 @@
 {
   "best_model_name": "Random_Forest",
-  "trained_at": "2026-09-13T15:20:07.038979+00:00",
+  "trained_at": "2026-09-13T15:51:06.461314+00:00",
   "random_state": 42,
   "cv_folds": 5,
   "test_comparison": [
