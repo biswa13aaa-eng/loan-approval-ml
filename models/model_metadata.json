@@ -1,0 +1,46 @@
+{
+  "best_model_name": "Random_Forest",
+  "trained_at": "2026-09-13T15:00:43.805142+00:00",
+  "random_state": 42,
+  "cv_folds": 5,
+  "cv_performance": {
+    "Random_Forest": {
+      "roc_auc": 0.7750972367762705,
+      "f1": 0.8483457259319328,
+      "accuracy": 0.773819830962688
+    },
+    "LightGBM": {
+      "roc_auc": 0.7443683857751092,
+      "f1": 0.8541723925007847,
+      "accuracy": 0.777922077922078
+    },
+    "Logistic_Regression": {
+      "roc_auc": 0.7410511012300924,
+      "f1": 0.8102292856150946,
+      "accuracy": 0.7331065759637188
+    },
+    "XGBoost": {
+      "roc_auc": 0.7388537624968139,
+      "f1": 0.8562384055444523,
+      "accuracy": 0.7799422799422799
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.8373983739837398,
+    "precision": 0.891566265060241,
+    "recall": 0.8705882352941177,
+    "f1": 0.8809523809523809,
+    "roc_auc": 0.8755417956656347
+  },
+  "confusion_matrix": [
+    [
+      29,
+      9
+    ],
+    [
+      11,
+      74
+    ]
+  ],
+  "model_file": "best_loan_model.joblib"
+}

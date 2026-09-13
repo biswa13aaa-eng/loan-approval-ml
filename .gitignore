@@ -53,6 +53,7 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Model artifacts (track folder, ignore heavy weights)
+# Model artifacts (track folder and metadata, ignore heavy binaries)
 models/*
 !models/.gitkeep
+!models/*.json
