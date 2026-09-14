@@ -1,151 +1,72 @@
-"""
-LOANWISE AI — Primary Application Entry Point & Router.
-Execution: streamlit run app/app.py
-"""
+"""LOANWISE AI Streamlit entry point. Run: streamlit run app/app.py"""
 
+import json
 import sys
 from pathlib import Path
 
-# Ensure project root and app directory are on sys.path
-APP_DIR = Path(__file__).resolve().parent
-BASE_DIR = APP_DIR.parent
-
-for p in [str(BASE_DIR), str(APP_DIR)]:
-    if p not in sys.path:
-        sys.path.insert(0, p)
-
-import json
 import joblib
 import pandas as pd
 import streamlit as st
 
-from src.config import (
-    RAW_DATA_FILE,
-    MODELS_DIR,
-    MODEL_METADATA_PATH,
-)
+APP_DIR = Path(__file__).resolve().parent
+BASE_DIR = APP_DIR.parent
+for path in (BASE_DIR, APP_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
-# Import custom layout and pages with robust fallback
-try:
-    from components.layout import load_css, render_sidebar
-    from pages import (
-        overview,
-        dataset,
-        eda,
-        models as models_view,
-        feature_importance,
-        predictor,
-        about,
-    )
-except ImportError:
-    from app.components.layout import load_css, render_sidebar
-    from app.pages import (
-        overview,
-        dataset,
-        eda,
-        models as models_view,
-        feature_importance,
-        predictor,
-        about,
-    )
+from src.config import MODELS_DIR, MODEL_METADATA_PATH, RAW_DATA_FILE
+from components.layout import load_css, render_sidebar
+from pages import about, dataset, eda, feature_importance, models as models_view, overview, predictor
 
-# Page configuration
-st.set_page_config(
-    page_title="LOANWISE AI — Credit Risk Intelligence",
-    page_icon="🏦",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# Inject custom fintech styling
+st.set_page_config(page_title="LOANWISE AI", page_icon="L", layout="wide", initial_sidebar_state="expanded")
 load_css()
 
 
 @st.cache_data
-def load_data() -> pd.DataFrame:
-    """
-    Loads and caches the raw dataset.
-    """
-    if not RAW_DATA_FILE.exists():
-        return None
-    return pd.read_csv(RAW_DATA_FILE)
+def load_data() -> pd.DataFrame | None:
+    return pd.read_csv(RAW_DATA_FILE) if RAW_DATA_FILE.exists() else None
 
 
 @st.cache_resource
 def load_models() -> dict:
-    """
-    Loads and caches candidate model pipelines.
-    """
-    models = {}
-    model_registry = {
-        "Random Forest (Selected)": MODELS_DIR / "random_forest.joblib",
+    registry = {
         "Logistic Regression": MODELS_DIR / "logistic_regression.joblib",
+        "Random Forest": MODELS_DIR / "random_forest.joblib",
         "XGBoost": MODELS_DIR / "xgboost.joblib",
     }
-    for name, path in model_registry.items():
+    loaded = {}
+    for name, path in registry.items():
         if path.exists():
             try:
-                models[name] = joblib.load(path)
-            except Exception as e:
-                st.sidebar.warning(f"Note: Could not load {name} ({e})")
-    return models
+                loaded[name] = joblib.load(path)
+            except Exception:
+                pass
+    return loaded
 
 
 @st.cache_data
 def load_results() -> dict:
-    """
-    Loads verified benchmark results and model metadata.
-    """
+    results_dir = BASE_DIR / "reports" / "results"
     results = {}
-    comp_csv = BASE_DIR / "reports" / "results" / "model_comparison.csv"
-    if comp_csv.exists():
-        results["comparison"] = pd.read_csv(comp_csv)
-
-    fi_csv = BASE_DIR / "reports" / "results" / "feature_importance.csv"
-    if fi_csv.exists():
-        results["fi"] = pd.read_csv(fi_csv)
-
-    tune_json = BASE_DIR / "reports" / "results" / "tuning_comparison.json"
-    if tune_json.exists():
-        with open(tune_json, "r", encoding="utf-8") as f:
-            results["tuning"] = json.load(f)
-
+    for key, path in {"comparison": results_dir / "model_comparison.csv", "fi": results_dir / "feature_importance.csv"}.items():
+        if path.exists():
+            results[key] = pd.read_csv(path)
     if MODEL_METADATA_PATH.exists():
-        with open(MODEL_METADATA_PATH, "r", encoding="utf-8") as f:
-            results["metadata"] = json.load(f)
-
+        with open(MODEL_METADATA_PATH, encoding="utf-8") as file:
+            results["metadata"] = json.load(file)
     return results
 
 
-def main():
-    # Load cached resources
-    df = load_data()
-    models = load_models()
-    results = load_results()
-
-    # Render persistent sidebar and get selected navigation page
+def main() -> None:
+    df, models, results = load_data(), load_models(), load_results()
     selected_page = render_sidebar()
-
-    # Route to selected page module
+    views = {"Overview": overview, "Dataset": dataset, "Exploratory Analysis": eda,
+             "Model Performance": models_view, "Feature Importance": feature_importance,
+             "Loan Predictor": predictor, "About Project": about}
     try:
-        if "Overview" in selected_page:
-            overview.render(df, models, results)
-        elif "Dataset" in selected_page:
-            dataset.render(df, models, results)
-        elif "Exploratory" in selected_page:
-            eda.render(df, models, results)
-        elif "Performance" in selected_page:
-            models_view.render(df, models, results)
-        elif "Importance" in selected_page:
-            feature_importance.render(df, models, results)
-        elif "Predictor" in selected_page:
-            predictor.render(df, models, results)
-        elif "About" in selected_page:
-            about.render(df, models, results)
-        else:
-            overview.render(df, models, results)
-    except Exception as e:
-        st.error(f"Application Error: Unable to render {selected_page}. Details: {e}")
+        views[selected_page].render(df, models, results)
+    except Exception:
+        st.error("Unable to load this view. Please refresh the page or verify the project artifacts.")
 
 
 if __name__ == "__main__":

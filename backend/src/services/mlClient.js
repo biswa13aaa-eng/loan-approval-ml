@@ -1,0 +1,2 @@
+const baseUrl = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+export async function ml(path, options = {}) { const response = await fetch(`${baseUrl}${path}`, {headers:{'Content-Type':'application/json'},...options}); const body=await response.json().catch(()=>({})); if(!response.ok) throw Object.assign(new Error(body.detail||'ML service request failed'),{status:response.status}); return body; }

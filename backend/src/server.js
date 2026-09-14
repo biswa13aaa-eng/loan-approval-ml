@@ -1,0 +1,2 @@
+import 'dotenv/config'; import express from 'express'; import cors from 'cors'; import api from './routes/api.js';
+const app=express();app.use(cors({origin:process.env.FRONTEND_URL||'http://localhost:5173'}));app.use(express.json({limit:'32kb'}));app.use('/api',api);app.use((err,req,res,next)=>res.status(err.status||502).json({success:false,error:err.message||'Request could not be completed'}));app.listen(process.env.PORT||3001,()=>console.log(`Loanwise API listening on ${process.env.PORT||3001}`));

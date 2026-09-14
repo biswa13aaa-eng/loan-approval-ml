@@ -1,0 +1,12 @@
+# Prevent Vercel from detecting Streamlit and Python ML code as Serverless Functions
+app/
+ml_service/
+src/
+models/
+data/
+reports/
+notebooks/
+venv/
+.streamlit/
+backend/
+supabase/

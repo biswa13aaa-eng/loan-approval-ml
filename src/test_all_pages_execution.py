@@ -20,7 +20,7 @@ import numpy as np
 # Verify imports
 print("[1/5] Testing modular imports...")
 from components.layout import load_css, render_sidebar
-from components.cards import render_kpi_card, render_decision_banner, render_risk_badge, render_takeaway
+from components.cards import render_kpi_card, render_takeaway
 from components.charts import (
     render_target_donut,
     render_model_comparison_bar,
@@ -104,7 +104,7 @@ high_risk_applicant = pd.DataFrame([{
     "Property_Area": "Rural",
 }])
 
-rf_model = models["Random Forest (Selected)"]
+rf_model = models.get("Random Forest (Selected)") or models.get("Random Forest")
 prime_pred = rf_model.predict(prime_applicant)[0]
 prime_prob = rf_model.predict_proba(prime_applicant)[0, 1]
 print(f"      [PASS] Prime Applicant: {'Approved' if prime_pred==1 else 'Rejected'} (Prob: {prime_prob:.2%})")
