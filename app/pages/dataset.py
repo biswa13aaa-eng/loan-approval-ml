@@ -9,7 +9,7 @@ from components.layout import render_section_marker
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("02 — DATA INTELLIGENCE", "Dataset Explorer", "Inspect the raw applicant records, feature schema, and data health foundation.")
+    render_section_marker("02 — DATA INTELLIGENCE", "THE DATA BEHIND THE MODEL.", "Inspect the raw applicant records, feature schema, and data health foundation.")
     if df is None:
         st.error("The dataset is unavailable. Check data/raw/loan_data.csv.")
         return

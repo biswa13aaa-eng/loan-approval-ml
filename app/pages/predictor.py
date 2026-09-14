@@ -12,7 +12,7 @@ def _default(series: pd.Series):
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("06 — AI PREDICTOR", "Think you qualify?", "Enter applicant profile, financial capacity, and credit details to generate an instant, calibrated machine learning approval assessment.")
+    render_section_marker("06 — ELIGIBILITY ENGINE", "LET THE MODEL ANALYZE YOUR PROFILE.", "Enter applicant profile, financial capacity, and credit details to generate an instant, calibrated machine learning approval assessment.")
 
     if df is None or not models:
         st.error("A dataset and at least one saved model are required for prediction.")

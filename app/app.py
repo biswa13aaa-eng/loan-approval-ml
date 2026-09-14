@@ -64,11 +64,23 @@ def main() -> None:
     render_top_navigation()
     views = {
         "Overview": overview,
+        "01  Overview": overview,
         "Dataset": dataset,
+        "02  Dataset": dataset,
+        "Exploration": eda,
+        "03  Exploration": eda,
         "Exploratory Analysis": eda,
+        "Models": models_view,
+        "04  Models": models_view,
         "Model Performance": models_view,
+        "Features": feature_importance,
+        "05  Features": feature_importance,
         "Feature Importance": feature_importance,
+        "Predictor": predictor,
+        "06  Predictor": predictor,
         "Loan Predictor": predictor,
+        "About": about,
+        "07  About": about,
         "About Project": about,
     }
     try:

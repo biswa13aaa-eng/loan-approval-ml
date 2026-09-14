@@ -11,7 +11,7 @@ from src.data_loader import split_data
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("04 — MODEL INTELLIGENCE", "Three models. One decision.", "Empirical evaluation across linear, ensemble, and gradient-boosted architectures on unseen holdout records.")
+    render_section_marker("04 — MODEL LAB", "THREE MODELS. ONE DECISION.", "Empirical evaluation across linear, ensemble, and gradient-boosted architectures on unseen holdout records.")
 
     comparison = results.get("comparison", pd.DataFrame())
     if comparison.empty:

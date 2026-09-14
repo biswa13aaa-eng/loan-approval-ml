@@ -7,7 +7,7 @@ from components.layout import render_section_marker
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("07 — ABOUT LOANWISE AI", "The Architecture Behind Intelligent Lending", "Engineering an end-to-end decision intelligence platform on empirical financial benchmarks.")
+    render_section_marker("07 — ABOUT LOANWISE", "AN ACADEMIC PROJECT, DESIGNED LIKE A PRODUCT.", "Engineering an end-to-end decision intelligence platform on empirical financial benchmarks.")
 
     numerical, categorical = feature_groups(df) if df is not None else ([], [])
     metadata = results.get("metadata", {})

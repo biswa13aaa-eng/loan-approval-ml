@@ -13,7 +13,7 @@ DATA_PATH = BASE_DIR / "data" / "raw" / "loan_data.csv"
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("03 — LENDING PATTERNS", "Exploratory Analysis", "Find the statistical signals and empirical patterns that separate approved and rejected applications.")
+    render_section_marker("03 — EXPLORATION", "WHAT DOES THE DATA TELL US?", "Find the statistical signals and empirical patterns that separate approved and rejected applications.")
 
     # Defensive dataset fallback: ensure df is loaded from disk if None
     if (df is None or "Loan_Status" not in df) and DATA_PATH.exists():

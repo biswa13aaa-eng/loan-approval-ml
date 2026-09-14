@@ -64,17 +64,18 @@ def render_editorial_hero(
 
 def render_system_diagram() -> None:
     """
-    Renders the abstract AI system architecture diagram.
+    Renders the abstract AI system architecture diagram:
+    APPLICANT -> DATA -> PREPROCESSING -> ML MODELS -> PREDICTION
     """
     nodes = [
-        ("01", "Applicant Profile", "11 Demographic & financial features"),
-        ("02", "Feature Pipeline", "Imputation, one-hot encoding & scaling"),
-        ("03", "ML Ensemble", "Logistic Reg, Random Forest & XGBoost"),
-        ("04", "Risk Intelligence", "Calibrated holdout probability scoring"),
-        ("05", "Explainable Output", "Risk tier & feature contribution"),
+        ("01", "APPLICANT", "Demographic & household submission"),
+        ("02", "DATA", "13 Normalized benchmark attributes"),
+        ("03", "PREPROCESSING", "Leakage-free imputation & scaling"),
+        ("04", "ML MODELS", "XGBoost, Random Forest & LogReg"),
+        ("05", "PREDICTION", "Calibrated probability & risk tier"),
     ]
     html = ['<div class="system-diagram">']
-    for num, title, detail in nodes:
+    for i, (num, title, detail) in enumerate(nodes):
         html.append(
             f"""
             <div class="diagram-node">
@@ -84,6 +85,8 @@ def render_system_diagram() -> None:
             </div>
             """
         )
+        if i < len(nodes) - 1:
+            html.append('<div class="diagram-arrow">→</div>')
     html.append("</div>")
     st.markdown("".join(html), unsafe_allow_html=True)
 

@@ -56,21 +56,45 @@ def render_top_navigation() -> None:
     )
 
 
-def render_sidebar() -> str:
-    """Renders the dark editorial sidebar navigation synchronized with session_state."""
-    pages = [
-        "Overview",
-        "Dataset",
-        "Exploratory Analysis",
-        "Model Performance",
-        "Feature Importance",
-        "Loan Predictor",
-        "About Project",
-    ]
+NAV_LABELS = [
+    "01  Overview",
+    "02  Dataset",
+    "03  Exploration",
+    "04  Models",
+    "05  Features",
+    "06  Predictor",
+    "07  About",
+]
 
-    # Initialize active page in session state if not set
-    if "active_page" not in st.session_state or st.session_state["active_page"] not in pages:
-        st.session_state["active_page"] = "Overview"
+PAGE_MAP = {
+    "01  Overview": "Overview",
+    "02  Dataset": "Dataset",
+    "03  Exploration": "Exploration",
+    "04  Models": "Models",
+    "05  Features": "Features",
+    "06  Predictor": "Predictor",
+    "07  About": "About",
+    "Overview": "01  Overview",
+    "Dataset": "02  Dataset",
+    "Exploration": "03  Exploration",
+    "Exploratory Analysis": "03  Exploration",
+    "Models": "04  Models",
+    "Model Performance": "04  Models",
+    "Features": "05  Features",
+    "Feature Importance": "05  Features",
+    "Predictor": "06  Predictor",
+    "Loan Predictor": "06  Predictor",
+    "About": "07  About",
+    "About Project": "07  About",
+}
+
+
+def render_sidebar() -> str:
+    """Renders the dark editorial sidebar navigation with monospace numbered items."""
+    current_val = st.session_state.get("active_page", "01  Overview")
+    current_label = PAGE_MAP.get(current_val, "01  Overview")
+    if current_label not in NAV_LABELS:
+        current_label = "01  Overview"
 
     with st.sidebar:
         st.markdown(
@@ -81,23 +105,22 @@ def render_sidebar() -> str:
             </div>
             <div class="sidebar-status-pill">
                 <span class="sidebar-status-dot"></span>
-                <span>AI MODEL READY</span>
+                <span>AI LOAN INTELLIGENCE · READY</span>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        current_idx = pages.index(st.session_state["active_page"])
+        current_idx = NAV_LABELS.index(current_label)
         selected = st.radio(
             "Navigation",
-            pages,
+            NAV_LABELS,
             index=current_idx,
             label_visibility="collapsed",
             key="sidebar_nav_radio",
         )
 
-        if selected != st.session_state["active_page"]:
-            st.session_state["active_page"] = selected
+        st.session_state["active_page"] = selected
 
         st.markdown(
             """
@@ -111,7 +134,7 @@ def render_sidebar() -> str:
             unsafe_allow_html=True,
         )
 
-        return st.session_state["active_page"]
+        return PAGE_MAP.get(selected, selected)
 
 
 def render_editorial_footer() -> None:

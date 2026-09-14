@@ -9,7 +9,7 @@ from components.layout import render_section_marker
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("05 — MODEL EXPLAINABILITY", "Why does the model make its decision?", "Deconstructing global feature importances across the trained production model.")
+    render_section_marker("05 — MODEL SIGNALS", "WHAT DRIVES THE DECISION?", "Deconstructing global feature importances across the trained production model.")
 
     importance = results.get("fi", pd.DataFrame()).copy()
     if importance.empty:

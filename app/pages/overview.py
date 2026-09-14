@@ -21,7 +21,7 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
     # 1. Editorial Hero Section
     render_editorial_hero(
         eyebrow="AI-POWERED LOAN INTELLIGENCE",
-        title="Make smarter<br>loan decisions.",
+        title='LOAN <span class="accent-text">INTELLIGENCE</span>,<br>BUILT FOR BETTER<br>DECISIONS.',
         description="LoanWise AI analyzes applicant information and historical lending patterns to estimate loan approval outcomes using machine learning.",
         status_text="AI MODEL READY",
     )
@@ -30,11 +30,11 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
     cta_col1, cta_col2, cta_col_space = st.columns([1.4, 1.4, 3.2])
     with cta_col1:
         if st.button("CHECK ELIGIBILITY →", key="hero_cta_predict", type="primary", use_container_width=True):
-            st.session_state["active_page"] = "Loan Predictor"
+            st.session_state["active_page"] = "06  Predictor"
             st.rerun()
     with cta_col2:
         if st.button("EXPLORE THE DATA", key="hero_cta_dataset", use_container_width=True):
-            st.session_state["active_page"] = "Dataset"
+            st.session_state["active_page"] = "02  Dataset"
             st.rerun()
 
     # 2. Dynamic Real Statistics Bar
@@ -55,11 +55,11 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
         render_kpi_card("04 · BASELINE APPROVAL", f"{approval_rate:.0%}", "HISTORICAL APPROVAL RATE", border_color="#B8B56A")
 
     # 3. Abstract AI / Data Visual (System Architecture Flow)
-    render_section_marker("01 — ARCHITECTURE", "The LoanWise AI Engine", "End-to-end transformation from raw applicant submission to risk-stratified decision.")
+    render_section_marker("01 — ARCHITECTURE", "HOW LOANWISE THINKS", "End-to-end transformation from raw applicant submission to risk-stratified decision.")
     render_system_diagram()
 
     # 4. Product Story (Editorial 3-Column Narrative)
-    render_section_marker("02 — PRODUCT STORY", "Why Intelligent Underwriting?", "Bridging the gap between historic lending records and instant, objective credit intelligence.")
+    render_section_marker("02 — PRODUCT STORY", "WHY INTELLIGENT UNDERWRITING?", "Bridging the gap between historic lending records and instant, objective credit intelligence.")
     sc1, sc2, sc3 = st.columns(3)
     with sc1:
         render_story_card(
@@ -84,30 +84,30 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
         )
 
     # 5. How LoanWise Works (4-Step Process)
-    render_section_marker("03 — WORKFLOW", "From applicant to decision", "A transparent four-phase pipeline powering every prediction.")
+    render_section_marker("03 — WORKFLOW", "FROM APPLICATION TO DECISION", "A transparent four-phase pipeline powering every prediction.")
     p1, p2, p3, p4 = st.columns(4)
     with p1:
         render_process_step(
             "01",
-            "Applicant Profile",
+            "01 PROFILE",
             "Captures core applicant information: income, co-applicant contribution, loan term, credit history, and property location.",
         )
     with p2:
         render_process_step(
             "02",
-            "Feature Processing",
+            "02 FINANCIALS",
             "Applies median numerical imputation, modal categorical imputation, and one-hot encoding without lookahead bias.",
         )
     with p3:
         render_process_step(
             "03",
-            "ML Prediction",
+            "03 CREDIT",
             "Scores the applicant against trained pipelines (Logistic Regression, Random Forest, and XGBoost) tuned via cross-validation.",
         )
     with p4:
         render_process_step(
             "04",
-            "Risk Assessment",
+            "04 AI DECISION",
             "Classifies the probability into calibrated tiers (Low, Moderate, High) with top contributing feature explanations.",
         )
 
@@ -120,4 +120,23 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
             f"Production pipeline benchmark selected <strong>{display_name(top['Model'])}</strong> achieving an F1 score of <strong>{top['F1']:.2%}</strong> and Accuracy of <strong>{top['Accuracy']:.2%}</strong> on unseen holdout data.",
             "MODEL BENCHMARK SNAPSHOT",
         )
+
+    # 7. Bottom Editorial Call to Action
+    st.markdown(
+        """
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 2.5rem; margin-top: 3rem; text-align: center;">
+            <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--accent-lime); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem;">READY TO TEST YOUR ELIGIBILITY?</div>
+            <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--text-cream); margin-bottom: 0.8rem;">Evaluate Your Loan Profile in Seconds</div>
+            <div style="font-size: 0.95rem; color: var(--text-muted); max-width: 540px; margin: 0 auto 1.8rem;">
+                Enter your demographic and financial parameters to generate instant machine learning approval assessments across three calibrated models.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col_cta_btn_l, col_cta_btn, col_cta_btn_r = st.columns([1.5, 2, 1.5])
+    with col_cta_btn:
+        if st.button("ANALYZE MY APPLICATION →", key="bottom_cta_predict", type="primary", use_container_width=True):
+            st.session_state["active_page"] = "06  Predictor"
+            st.rerun()
 
