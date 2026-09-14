@@ -48,6 +48,7 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
         .rename_axis("Loan Status")
         .reset_index(name="Count")
     )
+    target_counts["Count"] = target_counts["Count"].astype(int)
 
     fig_target = px.bar(
         target_counts,
