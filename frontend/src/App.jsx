@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react';
 import {BarChart,Bar,XAxis,YAxis,Tooltip,ResponsiveContainer,Cell} from 'recharts';
 import {LayoutDashboard,Database,ChartNoAxesCombined,BrainCircuit,GitCompareArrows,ClipboardCheck,History,Info,Menu,X,CheckCircle2} from 'lucide-react';
-import {api} from './services/api';
+import {api} from './services/api.js';
 const navigation=[['Overview',LayoutDashboard],['Dataset',Database],['Exploratory Analysis',ChartNoAxesCombined],['Model Performance',GitCompareArrows],['Feature Importance',BrainCircuit],['Loan Predictor',ClipboardCheck],['Prediction History',History],['About',Info]];
 const pretty=x=>x.replaceAll('_',' ');const pct=x=>x==null?'—':`${(x*100).toFixed(1)}%`;
 function Card({label,value,note}){return <div className="card"><small>{label}</small><strong>{value}</strong><span>{note}</span></div>}
