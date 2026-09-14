@@ -58,27 +58,60 @@ print("\n[2.5/5] Validating EDA chart data generation...")
 from components.data import feature_groups
 import plotly.express as px
 
-status_series = df["Loan_Status"].dropna().map({"Y": "Approved", "N": "Rejected"})
-assert not status_series.empty, "Target series must not be empty!"
-counts = status_series.value_counts()
-target_df = pd.DataFrame({"Loan status": counts.index, "Applications": counts.values})
-assert len(target_df) == 2, f"Expected 2 target classes, got {len(target_df)}"
-assert target_df.loc[target_df["Loan status"] == "Approved", "Applications"].values[0] == 422
-assert target_df.loc[target_df["Loan status"] == "Rejected", "Applications"].values[0] == 192
+status_map = {
+    "Y": "Approved",
+    "N": "Rejected"
+}
+target = df["Loan_Status"].astype(str).str.strip().str.upper()
+target_counts = (
+    target.map(status_map)
+    .fillna(target)
+    .value_counts()
+    .rename_axis("Loan Status")
+    .reset_index(name="Count")
+)
+assert len(target_counts) == 2, f"Expected 2 target classes, got {len(target_counts)}"
+assert target_counts.loc[target_counts["Loan Status"] == "Approved", "Count"].values[0] == 422
+assert target_counts.loc[target_counts["Loan Status"] == "Rejected", "Count"].values[0] == 192
 
 fig_target = px.bar(
-    target_df, x="Loan status", y="Applications", color="Loan status",
+    target_counts,
+    x="Loan Status",
+    y="Count",
+    text="Count",
+    title="Loan Approval Distribution",
+    color="Loan Status",
     color_discrete_map={"Approved": "#16a34a", "Rejected": "#dc2626"}
 )
+fig_target.update_traces(textposition="outside")
 assert len(fig_target.data) == 2, f"Target distribution chart must have 2 traces, got {len(fig_target.data)}"
 print("      [PASS] Target distribution verified (Approved: 422, Rejected: 192, 2 Plotly traces).")
 
+# Credit History vs Approval
+ch_df = df.dropna(subset=["Credit_History", "Loan_Status"]).copy()
+ch_df["Credit_Score"] = ch_df["Credit_History"].map({1.0: "Meets Guidelines (1.0)", 0.0: "Does Not Meet (0.0)"}).fillna("Unknown")
+ch_df["Outcome"] = ch_df["Loan_Status"].astype(str).str.strip().str.upper().map(status_map)
+ch_counts = ch_df.groupby(["Credit_Score", "Outcome"]).size().reset_index(name="Count")
+fig_ch = px.bar(
+    ch_counts,
+    x="Credit_Score",
+    y="Count",
+    color="Outcome",
+    barmode="group",
+    text="Count",
+    title="Credit History vs Loan Approval Outcome",
+    color_discrete_map={"Approved": "#16a34a", "Rejected": "#dc2626"}
+)
+assert len(fig_ch.data) == 2, f"Credit History chart must have 2 traces, got {len(fig_ch.data)}"
+print("      [PASS] Credit History vs Approval chart verified (2 traces, non-empty).")
+
 num_cols, cat_cols = feature_groups(df)
 assert len(num_cols) > 0 and len(cat_cols) > 0
-chart_data = df[[num_cols[0], "Loan_Status"]].dropna().assign(Outcome=lambda x: x["Loan_Status"].map({"Y": "Approved", "N": "Rejected"}))
+chart_data = df[[num_cols[0], "Loan_Status"]].dropna().copy()
+chart_data["Outcome"] = chart_data["Loan_Status"].astype(str).str.strip().str.upper().map(status_map)
 fig_num = px.histogram(chart_data, x=num_cols[0], color="Outcome")
 assert len(fig_num.data) > 0, "Numerical chart must have data!"
-print("      [PASS] Numerical and categorical chart data verified non-empty.")
+print("      [PASS] Numerical, categorical, and correlation chart data verified non-empty.")
 
 # In bare mode, Streamlit functions output to internal buffers without throwing errors
 pages_to_test = [

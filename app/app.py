@@ -24,7 +24,8 @@ load_css()
 
 @st.cache_data
 def load_data() -> pd.DataFrame | None:
-    return pd.read_csv(RAW_DATA_FILE) if RAW_DATA_FILE.exists() else None
+    data_path = RAW_DATA_FILE if RAW_DATA_FILE.exists() else (BASE_DIR / "data" / "raw" / "loan_data.csv")
+    return pd.read_csv(data_path) if data_path.exists() else None
 
 
 @st.cache_resource
