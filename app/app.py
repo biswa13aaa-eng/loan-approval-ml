@@ -25,7 +25,14 @@ load_css()
 @st.cache_data
 def load_data() -> pd.DataFrame | None:
     data_path = RAW_DATA_FILE if RAW_DATA_FILE.exists() else (BASE_DIR / "data" / "raw" / "loan_data.csv")
-    return pd.read_csv(data_path) if data_path.exists() else None
+    if not data_path.exists():
+        st.error(f"Dataset file not found at: {data_path}")
+        return None
+    df = pd.read_csv(data_path)
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].astype(str).str.strip()
+        df[col] = df[col].replace({"nan": None, "": None})
+    return df
 
 
 @st.cache_resource
@@ -40,8 +47,10 @@ def load_models() -> dict:
         if path.exists():
             try:
                 loaded[name] = joblib.load(path)
-            except Exception:
-                pass
+            except Exception as exc:
+                st.error(f"Failed to load model {name} from {path}: {exc}")
+        else:
+            st.warning(f"Model file {path.name} not found in {MODELS_DIR}")
     return loaded
 
 
@@ -84,9 +93,13 @@ def main() -> None:
         "About Project": about,
     }
     try:
-        views[selected_page].render(df, models, results)
+        if selected_page in views:
+            views[selected_page].render(df, models, results)
+        else:
+            st.error(f"Page '{selected_page}' not recognized. Available views: {list(views.keys())}")
     except Exception as exc:
-        st.error(f"Unable to load this view: {exc}")
+        import traceback
+        st.error(f"Error rendering view '{selected_page}': {exc}\n\n{traceback.format_exc()}")
     render_editorial_footer()
 
 

@@ -1,9 +1,24 @@
+import traceback
 import pandas as pd
 import streamlit as st
 
 from components.cards import render_prediction_result, render_takeaway
-from components.data import best_row, display_name, feature_groups
+from components.data import display_name, feature_groups
 from components.layout import render_section_marker
+
+TRAINING_COLS = [
+    "Gender",
+    "Married",
+    "Dependents",
+    "Education",
+    "Self_Employed",
+    "ApplicantIncome",
+    "CoapplicantIncome",
+    "LoanAmount",
+    "Loan_Amount_Term",
+    "Credit_History",
+    "Property_Area",
+]
 
 
 def _default(series: pd.Series):
@@ -12,33 +27,41 @@ def _default(series: pd.Series):
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
-    render_section_marker("06 — ELIGIBILITY ENGINE", "LET THE MODEL ANALYZE YOUR PROFILE.", "Enter applicant profile, financial capacity, and credit details to generate an instant, calibrated machine learning approval assessment.")
+    render_section_marker(
+        "06 — ELIGIBILITY ENGINE",
+        "LET THE MODEL ANALYZE YOUR PROFILE.",
+        "Enter applicant profile, financial capacity, and credit details to generate an instant, calibrated machine learning approval assessment.",
+    )
 
     if df is None or not models:
         st.error("A dataset and at least one saved model are required for prediction.")
         return
 
-    numerical, categorical = feature_groups(df)
-
     # Determine recommended model for default selection
     metadata = results.get("metadata", {})
-    best_name = metadata.get("best_model_name", "")
+    best_name = metadata.get("best_model_name", "Random_Forest")
     model_list = list(models.keys())
     default_idx = 0
     for i, m in enumerate(model_list):
-        if best_name and (best_name.lower() in m.lower() or m.lower() in best_name.lower()):
+        if best_name and (best_name.lower() in m.lower().replace(" ", "_") or m.lower() in best_name.lower()):
             default_idx = i
             break
 
+    # Model architecture selector
     model_col1, model_col2 = st.columns([1.5, 2.5])
     with model_col1:
-        selected = st.selectbox("Scoring Model Architecture", model_list, index=default_idx)
+        selected_model = st.selectbox(
+            "Scoring Model Architecture",
+            model_list,
+            index=default_idx,
+            key="scoring_model_selector",
+        )
     with model_col2:
         st.markdown(
             f"""
             <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1.5rem;">
                 <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-lime); text-transform: uppercase;">ACTIVE INFERENCE ENGINE:</span>
-                <span style="font-size: 0.88rem; color: var(--text-cream); margin-left: 0.5rem; font-weight: 600;">{selected} Pipeline</span>
+                <span style="font-size: 0.88rem; color: var(--text-cream); margin-left: 0.5rem; font-weight: 600;">{selected_model} Pipeline</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -49,107 +72,181 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
         # SECTION 01 — YOUR PROFILE
         render_section_marker("SECTION 01", "Your Profile", "Demographic, household, and educational background.")
         c1, c2, c3 = st.columns(3)
-        profile_cols = [col for col in ["Gender", "Married", "Dependents", "Education", "Self_Employed"] if col in df.columns]
-        for index, column in enumerate(profile_cols):
-            options = df[column].dropna().unique().tolist()
-            default = _default(df[column])
-            target_col = c1 if index % 3 == 0 else (c2 if index % 3 == 1 else c3)
-            with target_col:
-                values[column] = st.selectbox(
-                    column.replace("_", " "),
-                    options,
-                    index=options.index(default) if default in options else 0,
-                    key=f"pred_prof_{column}",
-                )
+        with c1:
+            gender_opts = [str(x) for x in df["Gender"].dropna().unique()] if "Gender" in df else ["Male", "Female"]
+            values["Gender"] = st.selectbox("Gender", gender_opts, index=0, key="pred_gender")
+
+            married_opts = [str(x) for x in df["Married"].dropna().unique()] if "Married" in df else ["Yes", "No"]
+            values["Married"] = st.selectbox("Married", married_opts, index=0, key="pred_married")
+
+        with c2:
+            dep_opts = ["0", "1", "2", "3+"]
+            values["Dependents"] = st.selectbox("Dependents", dep_opts, index=0, key="pred_dependents")
+
+            edu_opts = [str(x) for x in df["Education"].dropna().unique()] if "Education" in df else ["Graduate", "Not Graduate"]
+            values["Education"] = st.selectbox("Education", edu_opts, index=0, key="pred_education")
+
+        with c3:
+            emp_opts = [str(x) for x in df["Self_Employed"].dropna().unique()] if "Self_Employed" in df else ["No", "Yes"]
+            values["Self_Employed"] = st.selectbox("Self Employed", emp_opts, index=0, key="pred_self_employed")
 
         # SECTION 02 — YOUR FINANCES
         render_section_marker("SECTION 02", "Your Finances", "Monthly incomes, requested loan principal, and amortization horizon.")
         f1, f2 = st.columns(2)
-        finance_cols = [col for col in ["ApplicantIncome", "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term"] if col in df.columns]
-        for index, column in enumerate(finance_cols):
-            default = float(_default(df[column]))
-            target_col = f1 if index % 2 == 0 else f2
-            with target_col:
-                step_val = max(1.0, round(default / 20, 2)) if default > 0 else 100.0
-                values[column] = st.number_input(
-                    column.replace("_", " "),
-                    min_value=0.0,
-                    value=default,
-                    step=step_val,
-                    key=f"pred_fin_{column}",
-                )
+        with f1:
+            def_inc = float(df["ApplicantIncome"].median()) if "ApplicantIncome" in df else 5000.0
+            values["ApplicantIncome"] = st.number_input(
+                "Applicant Monthly Income ($)",
+                min_value=0.0,
+                value=def_inc,
+                step=100.0,
+                key="pred_applicant_income",
+            )
+
+            def_coinc = float(df["CoapplicantIncome"].median()) if "CoapplicantIncome" in df else 0.0
+            values["CoapplicantIncome"] = st.number_input(
+                "Co-applicant Monthly Income ($)",
+                min_value=0.0,
+                value=def_coinc,
+                step=100.0,
+                key="pred_coapplicant_income",
+            )
+
+        with f2:
+            def_amt = float(df["LoanAmount"].median()) if "LoanAmount" in df else 128.0
+            values["LoanAmount"] = st.number_input(
+                "Loan Amount ($ in thousands, e.g. 150 = $150,000)",
+                min_value=1.0,
+                value=def_amt,
+                step=5.0,
+                key="pred_loan_amount",
+            )
+
+            def_term = float(df["Loan_Amount_Term"].median()) if "Loan_Amount_Term" in df else 360.0
+            values["Loan_Amount_Term"] = st.number_input(
+                "Loan Term (in months, e.g. 360 = 30 years)",
+                min_value=12.0,
+                value=def_term,
+                step=12.0,
+                key="pred_loan_term",
+            )
 
         # SECTION 03 — CREDIT & PROPERTY
         render_section_marker("SECTION 03", "Credit & Property Context", "Credit guideline history compliance and geographic property area.")
         cp1, cp2 = st.columns(2)
-        credit_property_cols = [col for col in ["Credit_History", "Property_Area"] if col in df.columns]
-        for index, column in enumerate(credit_property_cols):
-            options = df[column].dropna().unique().tolist()
-            default = _default(df[column])
-            target_col = cp1 if index % 2 == 0 else cp2
-            with target_col:
-                if column == "Credit_History":
-                    # Clean presentation of credit history options
-                    ch_options = [1.0, 0.0] if set([1.0, 0.0]).issubset(set(options)) else options
-                    values[column] = st.selectbox(
-                        "Credit History (1.0 = Meets Guidelines, 0.0 = Does Not Meet)",
-                        ch_options,
-                        index=0 if 1.0 in ch_options else 0,
-                        key=f"pred_ch_{column}",
-                    )
-                else:
-                    values[column] = st.selectbox(
-                        column.replace("_", " "),
-                        options,
-                        index=options.index(default) if default in options else 0,
-                        key=f"pred_pa_{column}",
-                    )
+        with cp1:
+            ch_options = [1.0, 0.0]
+            values["Credit_History"] = st.selectbox(
+                "Credit History Compliance",
+                ch_options,
+                format_func=lambda x: "Meets Credit Guidelines (1.0)" if x == 1.0 else "Does Not Meet Guidelines (0.0)",
+                index=0,
+                key="pred_credit_history",
+            )
 
-        # Any remaining columns from the dataset schema
-        remaining = [c for c in categorical + numerical if c not in values and c not in ["Loan_Status", "Loan_ID"]]
-        for rem in remaining:
-            default = _default(df[rem])
-            values[rem] = float(default) if pd.api.types.is_numeric_dtype(df[rem]) else str(default)
+        with cp2:
+            prop_opts = [str(x) for x in df["Property_Area"].dropna().unique()] if "Property_Area" in df else ["Urban", "Semiurban", "Rural"]
+            values["Property_Area"] = st.selectbox("Property Area", prop_opts, index=0, key="pred_property_area")
 
         st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
         submitted = st.form_submit_button("ANALYZE MY ELIGIBILITY →", type="primary", use_container_width=True)
 
-    if not submitted:
-        return
+    # Clean applicant data builder
+    def build_applicant_df(raw_inputs: dict) -> pd.DataFrame:
+        clean = {
+            "Gender": str(raw_inputs["Gender"]).strip(),
+            "Married": str(raw_inputs["Married"]).strip(),
+            "Dependents": str(raw_inputs["Dependents"]).strip(),
+            "Education": str(raw_inputs["Education"]).strip(),
+            "Self_Employed": str(raw_inputs["Self_Employed"]).strip(),
+            "ApplicantIncome": float(raw_inputs["ApplicantIncome"]),
+            "CoapplicantIncome": float(raw_inputs["CoapplicantIncome"]),
+            "LoanAmount": float(raw_inputs["LoanAmount"]),
+            "Loan_Amount_Term": float(raw_inputs["Loan_Amount_Term"]),
+            "Credit_History": float(raw_inputs["Credit_History"]),
+            "Property_Area": str(raw_inputs["Property_Area"]).strip(),
+        }
+        return pd.DataFrame([clean])[TRAINING_COLS]
 
-    # Input Validation: zero household income guard
-    household_income = values.get("ApplicantIncome", 0) + values.get("CoapplicantIncome", 0)
-    if household_income <= 0:
-        st.warning("Unable to generate prediction. Household income (Applicant + Co-applicant) must be greater than zero.")
-        return
-
-    try:
-        applicant = pd.DataFrame([values])
-        pipeline = models[selected]
-        with st.spinner("Evaluating profile against trained model pipeline..."):
-            prediction = int(pipeline.predict(applicant)[0])
-            probabilities = pipeline.predict_proba(applicant)[0] if hasattr(pipeline, "predict_proba") else None
+    # Run inference helper
+    def run_inference(applicant_df: pd.DataFrame, model_name: str) -> dict:
+        pipeline = models[model_name]
+        prediction = int(pipeline.predict(applicant_df)[0])
+        if hasattr(pipeline, "predict_proba"):
+            probs = pipeline.predict_proba(applicant_df)[0]
+            rejected_prob = float(probs[0])
+            approval_prob = float(probs[1])
+        else:
+            approval_prob = 1.0 if prediction == 1 else 0.0
+            rejected_prob = 0.0 if prediction == 1 else 1.0
 
         approved = (prediction == 1)
-
-        if probabilities is not None:
-            rejected_prob = float(probabilities[0])
-            approval_prob = float(probabilities[1])
-            risk = "Low" if approval_prob >= 0.70 else ("Moderate" if approval_prob >= 0.50 else "High")
+        if approval_prob >= 0.70:
+            risk_tier = "Low"
+        elif approval_prob >= 0.50:
+            risk_tier = "Moderate"
         else:
-            approval_prob = 1.0 if approved else 0.0
-            rejected_prob = 0.0 if approved else 1.0
-            risk = "Low" if approved else "High"
+            risk_tier = "High"
 
-        # 1. Render Flagship AI Result Card
-        render_prediction_result(approved, approval_prob, risk, selected)
+        return {
+            "approved": approved,
+            "approval_prob": approval_prob,
+            "rejected_prob": rejected_prob,
+            "risk_tier": risk_tier,
+            "model_name": model_name,
+        }
 
-        # 2. How to interpret this assessment
+    # Handle Form Submission
+    if submitted:
+        total_income = float(values.get("ApplicantIncome", 0)) + float(values.get("CoapplicantIncome", 0))
+        if total_income <= 0:
+            st.warning("Household income (Applicant + Co-applicant) must be greater than zero.")
+            return
+
+        if float(values.get("LoanAmount", 0)) <= 0:
+            st.warning("Requested loan amount must be greater than zero.")
+            return
+
+        try:
+            applicant_df = build_applicant_df(values)
+            result = run_inference(applicant_df, selected_model)
+            st.session_state["latest_applicant_inputs"] = values
+            st.session_state["latest_prediction_result"] = result
+        except Exception as exc:
+            st.error(f"Prediction Pipeline Error: {exc}")
+            with st.expander("Diagnostic Error Details", expanded=True):
+                st.code(traceback.format_exc(), language="python")
+            return
+
+    # If not submitted in this rerun, check if user changed model selector with an existing submission
+    elif "latest_applicant_inputs" in st.session_state and "latest_prediction_result" in st.session_state:
+        prev_result = st.session_state["latest_prediction_result"]
+        if prev_result.get("model_name") != selected_model:
+            try:
+                applicant_df = build_applicant_df(st.session_state["latest_applicant_inputs"])
+                new_result = run_inference(applicant_df, selected_model)
+                st.session_state["latest_prediction_result"] = new_result
+            except Exception as exc:
+                st.error(f"Prediction Update Error: {exc}")
+                with st.expander("Diagnostic Error Details", expanded=True):
+                    st.code(traceback.format_exc(), language="python")
+                return
+
+    # If there is a prediction result available, render it
+    if "latest_prediction_result" in st.session_state:
+        res = st.session_state["latest_prediction_result"]
+        render_prediction_result(
+            approved=res["approved"],
+            prob=res["approval_prob"],
+            risk_tier=res["risk_tier"],
+            model_name=res["model_name"],
+        )
+
         with st.expander("How should I interpret this AI assessment?", expanded=True):
             st.markdown(
                 f"""
-                - **Approval Probability ({approval_prob:.2%}):** Represents the empirical likelihood of loan approval predicted by the **{selected}** model, trained on historic Kaggle lending benchmark records.
-                - **Assessed Risk Tier ({risk} Risk):**
+                - **Approval Probability ({res['approval_prob']:.2%}):** Represents the empirical likelihood of loan approval predicted by the **{res['model_name']}** model pipeline, evaluated on historic Kaggle lending records.
+                - **Assessed Risk Tier ({res['risk_tier']} Risk):**
                   - **Low Risk (≥ 70%):** Strong alignment with historical approval profiles, typically characterized by compliant credit history and viable debt-to-income balance.
                   - **Moderate Risk (50% – 69.9%):** Marginal profile where certain counter-signals (e.g., higher requested loan amount or single-income dependency) increase underwriting sensitivity.
                   - **High Risk (< 50%):** Profile exhibits significant risk indicators (e.g. non-compliant credit history or insufficient income relative to loan size).
@@ -161,7 +258,3 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
             "This prediction is an automated statistical estimate generated for academic and benchmarking purposes. It does not constitute a legally binding credit decision or clinical lending commitment.",
             "MODEL GOVERNANCE & ETHICS NOTICE",
         )
-
-    except Exception as exc:
-        st.error(f"Unable to generate prediction. Please verify the entered parameters: {exc}")
-

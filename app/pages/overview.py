@@ -10,7 +10,7 @@ from components.cards import (
     render_takeaway,
 )
 from components.data import best_row, display_name, input_columns
-from components.layout import render_section_marker
+from components.layout import navigate_to, render_section_marker
 
 
 def render(df: pd.DataFrame, models: dict, results: dict) -> None:
@@ -29,12 +29,12 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
     # Interactive CTA Row
     cta_col1, cta_col2, cta_col_space = st.columns([1.4, 1.4, 3.2])
     with cta_col1:
-        if st.button("CHECK ELIGIBILITY →", key="hero_cta_predict", type="primary", use_container_width=True):
-            st.session_state["active_page"] = "06  Predictor"
+        if st.button("CHECK ELIGIBILITY →", key="hero_cta_predict", on_click=navigate_to, args=("06  Predictor",), type="primary", use_container_width=True):
+            navigate_to("06  Predictor")
             st.rerun()
     with cta_col2:
-        if st.button("EXPLORE THE DATA", key="hero_cta_dataset", use_container_width=True):
-            st.session_state["active_page"] = "02  Dataset"
+        if st.button("EXPLORE THE DATA", key="hero_cta_dataset", on_click=navigate_to, args=("02  Dataset",), use_container_width=True):
+            navigate_to("02  Dataset")
             st.rerun()
 
     # 2. Dynamic Real Statistics Bar
@@ -136,7 +136,7 @@ def render(df: pd.DataFrame, models: dict, results: dict) -> None:
     )
     col_cta_btn_l, col_cta_btn, col_cta_btn_r = st.columns([1.5, 2, 1.5])
     with col_cta_btn:
-        if st.button("ANALYZE MY APPLICATION →", key="bottom_cta_predict", type="primary", use_container_width=True):
-            st.session_state["active_page"] = "06  Predictor"
+        if st.button("ANALYZE MY APPLICATION →", key="bottom_cta_predict", on_click=navigate_to, args=("06  Predictor",), type="primary", use_container_width=True):
+            navigate_to("06  Predictor")
             st.rerun()
 
