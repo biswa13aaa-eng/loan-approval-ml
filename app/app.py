@@ -15,7 +15,7 @@ for path in (BASE_DIR, APP_DIR):
         sys.path.insert(0, str(path))
 
 from src.config import MODELS_DIR, MODEL_METADATA_PATH, RAW_DATA_FILE
-from components.layout import load_css, render_sidebar
+from components.layout import load_css, render_sidebar, render_top_navigation, render_editorial_footer
 from pages import about, dataset, eda, feature_importance, models as models_view, overview, predictor
 
 st.set_page_config(page_title="LOANWISE AI", page_icon="L", layout="wide", initial_sidebar_state="expanded")
@@ -61,13 +61,21 @@ def load_results() -> dict:
 def main() -> None:
     df, models, results = load_data(), load_models(), load_results()
     selected_page = render_sidebar()
-    views = {"Overview": overview, "Dataset": dataset, "Exploratory Analysis": eda,
-             "Model Performance": models_view, "Feature Importance": feature_importance,
-             "Loan Predictor": predictor, "About Project": about}
+    render_top_navigation()
+    views = {
+        "Overview": overview,
+        "Dataset": dataset,
+        "Exploratory Analysis": eda,
+        "Model Performance": models_view,
+        "Feature Importance": feature_importance,
+        "Loan Predictor": predictor,
+        "About Project": about,
+    }
     try:
         views[selected_page].render(df, models, results)
-    except Exception:
-        st.error("Unable to load this view. Please refresh the page or verify the project artifacts.")
+    except Exception as exc:
+        st.error(f"Unable to load this view: {exc}")
+    render_editorial_footer()
 
 
 if __name__ == "__main__":

@@ -1,11 +1,166 @@
-"""Small reusable display components."""
+"""
+Modular editorial card and UI primitives for LOANWISE AI.
+"""
 
 import streamlit as st
 
 
-def render_kpi_card(label: str, value: str, subtext: str = "", border_color: str = "#2563eb") -> None:
-    st.markdown(f'<div class="kpi-card" style="border-left:3px solid {border_color}"><div class="kpi-label">{label}</div><div class="kpi-value">{value}</div><div class="kpi-subtext">{subtext}</div></div>', unsafe_allow_html=True)
+def render_kpi_card(label: str, value: str, subtext: str = "", border_color: str = "#D6BE1F") -> None:
+    """
+    Renders an editorial high-contrast stat card.
+    """
+    st.markdown(
+        f"""
+        <div class="stat-card" style="border-top: 2px solid {border_color};">
+            <div class="stat-card-num">{label}</div>
+            <div class="stat-card-val">{value}</div>
+            <div class="stat-card-label">{subtext}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
-def render_takeaway(text: str, title: str = "Insight") -> None:
-    st.markdown(f'<div class="takeaway-box"><strong>{title}:</strong> {text}</div>', unsafe_allow_html=True)
+def render_takeaway(text: str, title: str = "KEY INSIGHT") -> None:
+    """
+    Renders an editorial takeaway insight box in dark card style.
+    """
+    st.markdown(
+        f"""
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-left: 3px solid var(--accent-lime); border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-lime); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.25rem;">{title}</div>
+            <div style="color: var(--text-cream); font-size: 0.95rem; line-height: 1.5;">{text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_editorial_hero(
+    eyebrow: str = "AI-POWERED LOAN INTELLIGENCE",
+    title: str = "Make smarter<br>loan decisions.",
+    description: str = "LoanWise AI analyzes applicant profiles and historical lending patterns to estimate loan approval outcomes using calibrated machine learning ensembles.",
+    status_text: str = "AI MODEL READY",
+) -> None:
+    """
+    Renders the large editorial hero section.
+    """
+    st.markdown(
+        f"""
+        <div class="editorial-hero">
+            <div class="hero-eyebrow">
+                <span class="sidebar-status-dot"></span>
+                <span>{eyebrow}</span>
+                <span style="color: var(--text-dim);">·</span>
+                <span style="color: var(--accent-lime);">{status_text}</span>
+            </div>
+            <h1 class="hero-title">{title}</h1>
+            <p class="hero-desc">{description}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_system_diagram() -> None:
+    """
+    Renders the abstract AI system architecture diagram.
+    """
+    nodes = [
+        ("01", "Applicant Profile", "11 Demographic & financial features"),
+        ("02", "Feature Pipeline", "Imputation, one-hot encoding & scaling"),
+        ("03", "ML Ensemble", "Logistic Reg, Random Forest & XGBoost"),
+        ("04", "Risk Intelligence", "Calibrated holdout probability scoring"),
+        ("05", "Explainable Output", "Risk tier & feature contribution"),
+    ]
+    html = ['<div class="system-diagram">']
+    for num, title, detail in nodes:
+        html.append(
+            f"""
+            <div class="diagram-node">
+                <div class="diagram-node-tag">{num} — SYSTEM NODE</div>
+                <div class="diagram-node-title">{title}</div>
+                <div class="diagram-node-detail">{detail}</div>
+            </div>
+            """
+        )
+    html.append("</div>")
+    st.markdown("".join(html), unsafe_allow_html=True)
+
+
+def render_story_card(number: str, eyebrow: str, headline: str, copy: str) -> None:
+    """
+    Renders an editorial story card for Problem / Approach / Result.
+    """
+    st.markdown(
+        f"""
+        <div class="story-card">
+            <div class="story-eyebrow">{number} — {eyebrow}</div>
+            <div class="story-headline">{headline}</div>
+            <div class="story-copy">{copy}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_process_step(number: str, title: str, description: str) -> None:
+    """
+    Renders a 4-step workflow process card.
+    """
+    st.markdown(
+        f"""
+        <div class="process-step-card">
+            <div class="step-badge">STEP {number}</div>
+            <div class="step-title">{title}</div>
+            <div class="step-desc">{description}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_prediction_result(approved: bool, prob: float, risk_tier: str, model_name: str) -> None:
+    """
+    Renders the flagship AI Predictor result card with probability gauge and risk tier.
+    """
+    card_class = "approved" if approved else "rejected"
+    headline = "LIKELY TO BE APPROVED" if approved else "LIKELY TO BE REJECTED"
+    headline_color = "var(--status-success)" if approved else "var(--status-danger)"
+    approval_pct = prob * 100
+    rejection_pct = (1.0 - prob) * 100
+    risk_color = (
+        "var(--status-success)" if risk_tier == "Low" else ("var(--accent-lime)" if risk_tier == "Moderate" else "var(--status-danger)")
+    )
+
+    st.markdown(
+        f"""
+        <div class="pred-result-card {card_class}">
+            <div class="pred-header-tag">AI ASSESSMENT REPORT · {model_name.upper()}</div>
+            <div class="pred-decision-headline" style="color: {headline_color};">{headline}</div>
+            <div class="pred-prob-large">{approval_pct:.1f}%</div>
+            <div class="pred-prob-label">ESTIMATED APPROVAL PROBABILITY</div>
+            
+            <div class="prob-meter-track">
+                <div class="prob-meter-fill {card_class}" style="width: {approval_pct}%;"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Approval Probability</div>
+                    <div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-cream); margin-top: 0.2rem;">{approval_pct:.2f}%</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Rejection Probability</div>
+                    <div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-cream); margin-top: 0.2rem;">{rejection_pct:.2f}%</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Assessed Risk Tier</div>
+                    <div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: {risk_color}; margin-top: 0.2rem;">{risk_tier.upper()} RISK</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
