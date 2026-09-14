@@ -136,34 +136,34 @@ def render_prediction_result(approved: bool, prob: float, risk_tier: str, model_
         "var(--status-success)" if risk_tier == "Low" else ("var(--accent-lime)" if risk_tier == "Moderate" else "var(--status-danger)")
     )
 
-    st.markdown(
-        f"""
-        <div class="pred-result-card {card_class}">
-            <div class="pred-header-tag">AI ASSESSMENT REPORT · {model_name.upper()}</div>
-            <div class="pred-decision-headline" style="color: {headline_color};">{headline}</div>
-            <div class="pred-prob-large">{approval_pct:.1f}%</div>
-            <div class="pred-prob-label">ESTIMATED APPROVAL PROBABILITY</div>
-            
-            <div class="prob-meter-track">
-                <div class="prob-meter-fill {card_class}" style="width: {approval_pct}%;"></div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
-                <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">
-                    <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Approval Probability</div>
-                    <div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-cream); margin-top: 0.2rem;">{approval_pct:.2f}%</div>
-                </div>
-                <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">
-                    <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Rejection Probability</div>
-                    <div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-cream); margin-top: 0.2rem;">{rejection_pct:.2f}%</div>
-                </div>
-                <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">
-                    <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Assessed Risk Tier</div>
-                    <div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: {risk_color}; margin-top: 0.2rem;">{risk_tier.upper()} RISK</div>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    card_html = (
+        f'<div class="pred-result-card {card_class}">'
+        f'<div class="pred-header-tag">AI ASSESSMENT REPORT · {model_name.upper()}</div>'
+        f'<div class="pred-decision-headline" style="color: {headline_color};">{headline}</div>'
+        f'<div class="pred-prob-large">{approval_pct:.1f}%</div>'
+        f'<div class="pred-prob-label">ESTIMATED APPROVAL PROBABILITY</div>'
+        f'<div class="prob-meter-track">'
+        f'<div class="prob-meter-fill {card_class}" style="width: {approval_pct:.2f}%;"></div>'
+        f'</div>'
+        f'<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem;">'
+        f'<div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">'
+        f'<div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Approval Probability</div>'
+        f'<div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-cream); margin-top: 0.2rem;">{approval_pct:.2f}%</div>'
+        f'</div>'
+        f'<div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">'
+        f'<div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Rejection Probability</div>'
+        f'<div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text-cream); margin-top: 0.2rem;">{rejection_pct:.2f}%</div>'
+        f'</div>'
+        f'<div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem;">'
+        f'<div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">Assessed Risk Tier</div>'
+        f'<div style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: {risk_color}; margin-top: 0.2rem;">{risk_tier.upper()} RISK</div>'
+        f'</div>'
+        f'</div>'
+        f'</div>'
     )
+
+    if hasattr(st, "html"):
+        st.html(card_html)
+    else:
+        st.markdown(card_html, unsafe_allow_html=True)
 
